@@ -131,24 +131,20 @@ public class StockUI extends UI {
      * @param values
      */
     public void updateStockDetails(String stockSymbol, StockQuote... values) {
-        // wrap modification into UI.access(Runnable), as the calls comes from
-        // "non UI thread", this is the "hard" part of the Vaadin( )in Akka
-        // integration
-        access(() -> {
-            DataSeries series = symbolToChart.get(stockSymbol);
-            if (series == null) {
-                series = new DataSeries(stockSymbol);
-                symbolToChart.put(stockSymbol, series);
-                chart.getConfiguration().addSeries(series);
-                chart.drawChart();
-            }
-            for (StockQuote value : values) {
-                final boolean shift = series.size() >= 50;
-				final DataSeriesItem dataSeriesItem = new DataSeriesItem(
-						Date.from(value.getTimeStamp().toInstant(ZoneOffset.UTC)), value.getPrice());
-                series.add(dataSeriesItem, shift, shift);
-            }
-        });
+        DataSeries series = symbolToChart.get(stockSymbol);
+        if (series == null) {
+            series = new DataSeries(stockSymbol);
+            symbolToChart.put(stockSymbol, series);
+            chart.getConfiguration().addSeries(series);
+            chart.drawChart();
+        }
+        for (StockQuote value : values) {
+            final boolean shift = series.size() >= 50;
+            final DataSeriesItem dataSeriesItem = new DataSeriesItem(
+                    Date.from(value.getTimeStamp().toInstant(ZoneOffset.UTC)),
+                    value.getPrice());
+            series.add(dataSeriesItem, shift, shift);
+        }
     }
 
     private ActorSystem getSystem() {

@@ -5,6 +5,8 @@ import com.vaadin.vaadininmuija.akka.messages.StockUpdate;
 import com.vaadin.vaadininmuija.akka.messages.UnwatchStock;
 import akka.actor.UntypedActor;
 import com.vaadin.vaadininmuija.StockUI;
+import scala.PartialFunction;
+import scala.runtime.BoxedUnit;
 
 /**
  * The broker between the VaadinUI and the StockActor(s). The UserActor holds
@@ -20,6 +22,17 @@ public class UIActor extends UntypedActor {
 
     public UIActor(StockUI ui) {
         this.vaadinUi = ui;
+    }
+
+    @Override
+    public void aroundReceive(PartialFunction<Object, BoxedUnit> receive,
+            Object msg) {
+        // wrap modification into UI.access(Runnable), as the calls comes from
+        // "non UI thread", this is the "hard" part of the Vaadin( )in Akka
+        // integration
+        vaadinUi.access(() -> {
+            super.aroundReceive(receive, msg);
+        });
     }
 
     @Override
